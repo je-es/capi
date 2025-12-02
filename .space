@@ -1,0 +1,28 @@
+{
+	"type"              : "lib",
+	"template"          : "clean",
+	"pm"                : "bun",
+	"repo"              : {
+		"org"           : "je-es",
+		"name"          : "capi",
+		"version"       : "0.0.1",
+		"desc"          : "A lightweight, type-safe HTTP client with interceptors, automatic retries, and comprehensive error handling.",
+		"kw"            : [
+			"je-es",
+			"client",
+			"http",
+			"api"
+		],
+		"license"       : "MIT",
+		"issues"        : "https://github.com/je-es/capi/issues",
+		"homepage"      : "https://github.com/je-es/capi#readme",
+		"git_url"       : "git+https://github.com/je-es/capi.git"
+	},
+	"author"            : {
+		"id"            : "maysara-elshewehy",
+		"name"          : "Maysara",
+		"email"         : "maysara.elshewehy@gmail.com",
+		"url"           : "https://github.com/maysara-elshewehy"
+	},
+	"createdAt"         : "2025-12-02T05:33:26.574Z"
+}
