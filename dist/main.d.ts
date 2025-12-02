@@ -8,43 +8,45 @@
 
     type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
 
+    interface ApiConfig {
+        baseURL         : string;
+        timeout         : number;
+        headers         : Record<string, string>;
+        interceptors    : {
+            request     : ((config: ApiOptions) => ApiOptions | Promise<ApiOptions>) | null;
+            response    : ((response: ApiResponse) => ApiResponse | Promise<ApiResponse>) | null;
+            error       : ((error: ApiError) => any) | null;
+        };
+    }
+
     interface ApiOptions {
-        method?: HttpMethod;
-        url: string;
-        data?: any;
-        headers?: Record<string, string>;
-        params?: Record<string, any>;
-        timeout?: number;
+        method?         : HttpMethod;
+        url             : string;
+        data?           : any;
+        headers?        : Record<string, string>;
+        params?         : Record<string, any>;
+        timeout?        : number;
     }
 
     interface ApiResponse<T = any> {
-        data: T;
-        status: number;
-        statusText: string;
-        headers: Record<string, string>;
+        data            : T;
+        status          : number;
+        statusText      : string;
+        headers         : Record<string, string>;
     }
 
-    interface ApiError$1 {
-        message: string;
-        status?: number;
-        data?: any;
+    interface ApiError {
+        message         : string;
+        status?         : number;
+        data?           : any;
     }
 
-type ApiError = ApiError$1;
+    interface ApiInterceptors {
+        request?        : ((config: ApiOptions) => ApiOptions | Promise<ApiOptions>) | null;
+        response?       : ((response: ApiResponse) => ApiResponse | Promise<ApiResponse>) | null;
+        error?          : ((error: ApiError) => any) | null;
+    }
 
-/**
- * API Configuration with type safety
- */
-interface ApiConfig {
-    baseURL: string;
-    timeout: number;
-    headers: Record<string, string>;
-    interceptors: {
-        request: ((config: ApiOptions) => ApiOptions | Promise<ApiOptions>) | null;
-        response: ((response: ApiResponse) => ApiResponse | Promise<ApiResponse>) | null;
-        error: ((error: ApiError) => any) | null;
-    };
-}
 /**
  * Configure API client
  */
@@ -74,4 +76,4 @@ declare const http: {
     options: <T = any>(url: string, options?: Partial<ApiOptions>) => Promise<ApiResponse<T>>;
 };
 
-export { type ApiError, type ApiOptions, type ApiResponse, api, configureApi, getApiConfig, http, resetApiConfig };
+export { type ApiConfig, type ApiError, type ApiInterceptors, type ApiOptions, type ApiResponse, type HttpMethod, api, configureApi, getApiConfig, http, resetApiConfig };
