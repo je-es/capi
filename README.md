@@ -8,10 +8,13 @@
 </div>
 
 <div align="center">
-    <img src="https://img.shields.io/badge/v-0.0.1-black"/>
-    <a href="https://github.com/maysara-elshewehy">
-    </a>
-    <a href="https://github.com/je-es/capi#readme"> <img src="https://img.shields.io/badge/🔥-@je--es/capi-black"/> </a>
+    <img src="https://img.shields.io/badge/v-0.0.2-black"/>
+    <img src="https://img.shields.io/badge/🔥-@je--es-black"/>
+    <br>
+    <img src="https://github.com/je-es/capi/actions/workflows/ci.yml/badge.svg" alt="CI" />
+    <img src="https://img.shields.io/badge/coverage-100%25-brightgreen" alt="Test Coverage" />
+    <img src="https://img.shields.io/github/issues/je-es/capi?style=flat" alt="Github Repo Issues" />
+    <img src="https://img.shields.io/github/stars/je-es/capi?style=social" alt="GitHub Repo stars" />
 </div>
 <br>
 
