@@ -1,6 +1,6 @@
 {
 	"name"                             : "@je-es/capi",
-	"version"                          : "0.0.3",
+	"version"                          : "0.0.4",
 	"description"                      : "A lightweight, type-safe HTTP client with interceptors, automatic retries, and comprehensive error handling.",
 	"keywords"                         : [
 		"je-es",

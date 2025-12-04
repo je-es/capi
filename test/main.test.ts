@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // test/main.test.ts
 //
 // Made with ❤️ by Maysara.
@@ -480,7 +481,7 @@
         test('should apply error interceptor', async () => {
             const { configureApi, http } = await import('../src/main');
 
-            const errorInterceptor = mock((error) => {
+            const errorInterceptor = mock(() => {
                 return { data: { handled: true }, status: 200, statusText: 'OK', headers: {} };
             });
 
@@ -637,7 +638,7 @@
                 throw new TypeError('Failed to fetch');
             }) as any;
 
-            const response = await http.get('/api/test');
+            await http.get('/api/test');
             expect(errorInterceptor).toHaveBeenCalled();
         });
     });

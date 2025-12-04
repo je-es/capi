@@ -6,7 +6,7 @@
 
 // ╔════════════════════════════════════════ PACK ════════════════════════════════════════╗
 
-    import type { ApiOptions, ApiResponse, ApiError, ApiConfig } from './types.d';
+    import type { ApiOptions, ApiResponse, ApiError, ApiConfig, RequestData } from './types.d';
     export * from './types.d';
 
 // ╚══════════════════════════════════════════════════════════════════════════════════════╝
@@ -70,7 +70,7 @@
     /**
      * API client with improved error handling and type safety
      */
-    export async function api<T = any>(options: ApiOptions): Promise<ApiResponse<T>> {
+    export async function api<T = unknown>(options: ApiOptions): Promise<ApiResponse<T>> {
         // Merge with default config
         let config: ApiOptions = {
             method: options.method || 'GET',
@@ -129,7 +129,7 @@
                 // Let browser set Content-Type with boundary for FormData
                 delete fetchOptions.headers;
                 fetchOptions.headers = { ...config.headers };
-                delete (fetchOptions.headers as any)['Content-Type'];
+                delete (fetchOptions.headers as Record<string, string>)['Content-Type'];
             } else if (config.data instanceof Blob) {
                 fetchOptions.body = config.data;
             } else if (typeof config.data === 'string') {
@@ -155,16 +155,16 @@
                 const text = await response.text();
                 data = text ? JSON.parse(text) : null;
             } else if (contentType.includes('text/')) {
-                data = await response.text() as any;
+                data = await response.text() as T;
             } else if (contentType.includes('application/octet-stream') || contentType.includes('application/pdf')) {
-                data = await response.blob() as any;
+                data = await response.blob() as T;
             } else {
                 // Try to parse as JSON first, fall back to text
                 const text = await response.text();
                 try {
-                    data = text ? JSON.parse(text) : text as any;
+                    data = text ? JSON.parse(text) : text as T;
                 } catch {
-                    data = text as any;
+                    data = text as T;
                 }
             }
 
@@ -178,7 +178,7 @@
 
                 // Apply error interceptor
                 if (apiConfig.interceptors.error) {
-                    return apiConfig.interceptors.error(error);
+                    return apiConfig.interceptors.error(error) as Promise<ApiResponse<T>>;
                 }
 
                 throw error;
@@ -204,28 +204,32 @@
 
             return apiResponse;
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             // Handle different error types
             let apiError: ApiError;
 
-            if (error.name === 'AbortError') {
-                apiError = createApiError('Request timeout', 0, null);
-            } else if (error instanceof TypeError && error.message.includes('fetch')) {
-                apiError = createApiError('Network error', 0, null);
-            } else if (error.message && error.status !== undefined) {
+            if (error instanceof Error) {
+                if (error.name === 'AbortError') {
+                    apiError = createApiError('Request timeout', 0, null);
+                } else if (error instanceof TypeError && error.message.includes('fetch')) {
+                    apiError = createApiError('Network error', 0, null);
+                } else {
+                    apiError = createApiError(
+                        error.message || 'Unknown error',
+                        0,
+                        null
+                    );
+                }
+            } else if (isApiError(error)) {
                 // Already an ApiError
                 apiError = error;
             } else {
-                apiError = createApiError(
-                    error.message || 'Unknown error',
-                    error.status || 0,
-                    error.data || null
-                );
+                apiError = createApiError('Unknown error', 0, null);
             }
 
             // Apply error interceptor
             if (apiConfig.interceptors.error) {
-                return apiConfig.interceptors.error(apiError);
+                return apiConfig.interceptors.error(apiError) as Promise<ApiResponse<T>>;
             }
 
             throw apiError;
@@ -236,25 +240,25 @@
      * Convenience methods with improved typing
      */
     export const http = {
-        get: <T = any>(url: string, options?: Partial<ApiOptions>): Promise<ApiResponse<T>> =>
+        get: <T = unknown>(url: string, options?: Partial<ApiOptions>): Promise<ApiResponse<T>> =>
             api<T>({ ...options, method: 'GET', url }),
 
-        post: <T = any>(url: string, data?: any, options?: Partial<ApiOptions>): Promise<ApiResponse<T>> =>
+        post: <T = unknown>(url: string, data?: RequestData, options?: Partial<ApiOptions>): Promise<ApiResponse<T>> =>
             api<T>({ ...options, method: 'POST', url, data }),
 
-        put: <T = any>(url: string, data?: any, options?: Partial<ApiOptions>): Promise<ApiResponse<T>> =>
+        put: <T = unknown>(url: string, data?: RequestData, options?: Partial<ApiOptions>): Promise<ApiResponse<T>> =>
             api<T>({ ...options, method: 'PUT', url, data }),
 
-        patch: <T = any>(url: string, data?: any, options?: Partial<ApiOptions>): Promise<ApiResponse<T>> =>
+        patch: <T = unknown>(url: string, data?: RequestData, options?: Partial<ApiOptions>): Promise<ApiResponse<T>> =>
             api<T>({ ...options, method: 'PATCH', url, data }),
 
-        delete: <T = any>(url: string, options?: Partial<ApiOptions>): Promise<ApiResponse<T>> =>
+        delete: <T = unknown>(url: string, options?: Partial<ApiOptions>): Promise<ApiResponse<T>> =>
             api<T>({ ...options, method: 'DELETE', url }),
 
-        head: <T = any>(url: string, options?: Partial<ApiOptions>): Promise<ApiResponse<T>> =>
+        head: <T = unknown>(url: string, options?: Partial<ApiOptions>): Promise<ApiResponse<T>> =>
             api<T>({ ...options, method: 'HEAD', url }),
 
-        options: <T = any>(url: string, options?: Partial<ApiOptions>): Promise<ApiResponse<T>> =>
+        options: <T = unknown>(url: string, options?: Partial<ApiOptions>): Promise<ApiResponse<T>> =>
             api<T>({ ...options, method: 'OPTIONS', url }),
     };
 
@@ -276,12 +280,24 @@
     /**
      * Create standardized API error
      */
-    function createApiError(message: string, status: number, data: any): ApiError {
+    function createApiError<T = unknown>(message: string, status: number, data: T | null): ApiError<T> {
         return {
             message,
             status,
             data,
         };
+    }
+
+    /**
+     * Type guard to check if error is ApiError
+     */
+    function isApiError(error: unknown): error is ApiError {
+        return (
+            typeof error === 'object' &&
+            error !== null &&
+            'message' in error &&
+            'status' in error
+        );
     }
 
 // ╚══════════════════════════════════════════════════════════════════════════════════════╝
