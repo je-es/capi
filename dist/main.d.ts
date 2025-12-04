@@ -8,43 +8,49 @@
 
     type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD' | 'OPTIONS';
 
-    interface ApiConfig {
+    // Generic type for request data (can be JSON, FormData, Blob, or string)
+    type RequestData = Record<string, unknown> | FormData | Blob | string | null;
+
+    // Generic type for params (string, number, boolean, or null)
+    type ParamValue = string | number | boolean | null | undefined;
+
+    interface ApiConfig<T = unknown> {
         baseURL         : string;
         timeout         : number;
         headers         : Record<string, string>;
         interceptors    : {
             request     : ((config: ApiOptions) => ApiOptions | Promise<ApiOptions>) | null;
-            response    : ((response: ApiResponse) => ApiResponse | Promise<ApiResponse>) | null;
-            error       : ((error: ApiError) => any) | null;
+            response    : (<R = T>(response: ApiResponse<R>) => ApiResponse<R> | Promise<ApiResponse<R>>) | null;
+            error       : ((error: ApiError) => ApiResponse<T> | Promise<ApiResponse<T>>) | null;
         };
     }
 
     interface ApiOptions {
         method?         : HttpMethod;
         url             : string;
-        data?           : any;
+        data?           : RequestData;
         headers?        : Record<string, string>;
-        params?         : Record<string, any>;
+        params?         : Record<string, ParamValue>;
         timeout?        : number;
     }
 
-    interface ApiResponse<T = any> {
+    interface ApiResponse<T = unknown> {
         data            : T;
         status          : number;
         statusText      : string;
         headers         : Record<string, string>;
     }
 
-    interface ApiError {
+    interface ApiError<T = unknown> {
         message         : string;
-        status?         : number;
-        data?           : any;
+        status          : number;
+        data            : T | null;
     }
 
-    interface ApiInterceptors {
+    interface ApiInterceptors<T = unknown> {
         request?        : ((config: ApiOptions) => ApiOptions | Promise<ApiOptions>) | null;
-        response?       : ((response: ApiResponse) => ApiResponse | Promise<ApiResponse>) | null;
-        error?          : ((error: ApiError) => any) | null;
+        response?       : (<R = T>(response: ApiResponse<R>) => ApiResponse<R> | Promise<ApiResponse<R>>) | null;
+        error?          : ((error: ApiError) => ApiResponse<T> | Promise<ApiResponse<T>>) | null;
     }
 
 /**
@@ -62,18 +68,18 @@ declare function resetApiConfig(): void;
 /**
  * API client with improved error handling and type safety
  */
-declare function api<T = any>(options: ApiOptions): Promise<ApiResponse<T>>;
+declare function api<T = unknown>(options: ApiOptions): Promise<ApiResponse<T>>;
 /**
  * Convenience methods with improved typing
  */
 declare const http: {
-    get: <T = any>(url: string, options?: Partial<ApiOptions>) => Promise<ApiResponse<T>>;
-    post: <T = any>(url: string, data?: any, options?: Partial<ApiOptions>) => Promise<ApiResponse<T>>;
-    put: <T = any>(url: string, data?: any, options?: Partial<ApiOptions>) => Promise<ApiResponse<T>>;
-    patch: <T = any>(url: string, data?: any, options?: Partial<ApiOptions>) => Promise<ApiResponse<T>>;
-    delete: <T = any>(url: string, options?: Partial<ApiOptions>) => Promise<ApiResponse<T>>;
-    head: <T = any>(url: string, options?: Partial<ApiOptions>) => Promise<ApiResponse<T>>;
-    options: <T = any>(url: string, options?: Partial<ApiOptions>) => Promise<ApiResponse<T>>;
+    get: <T = unknown>(url: string, options?: Partial<ApiOptions>) => Promise<ApiResponse<T>>;
+    post: <T = unknown>(url: string, data?: RequestData, options?: Partial<ApiOptions>) => Promise<ApiResponse<T>>;
+    put: <T = unknown>(url: string, data?: RequestData, options?: Partial<ApiOptions>) => Promise<ApiResponse<T>>;
+    patch: <T = unknown>(url: string, data?: RequestData, options?: Partial<ApiOptions>) => Promise<ApiResponse<T>>;
+    delete: <T = unknown>(url: string, options?: Partial<ApiOptions>) => Promise<ApiResponse<T>>;
+    head: <T = unknown>(url: string, options?: Partial<ApiOptions>) => Promise<ApiResponse<T>>;
+    options: <T = unknown>(url: string, options?: Partial<ApiOptions>) => Promise<ApiResponse<T>>;
 };
 
-export { type ApiConfig, type ApiError, type ApiInterceptors, type ApiOptions, type ApiResponse, type HttpMethod, api, configureApi, getApiConfig, http, resetApiConfig };
+export { type ApiConfig, type ApiError, type ApiInterceptors, type ApiOptions, type ApiResponse, type HttpMethod, type ParamValue, type RequestData, api, configureApi, getApiConfig, http, resetApiConfig };
